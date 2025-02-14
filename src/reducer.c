@@ -21,7 +21,7 @@ void *reducer(void *argc){
                 return NULL;
             }
             else{
-                hashmap_insert(curr_buf->topic_score_map, curr_tup.topic, curr_tup->score);
+                hashmap_insert(curr_buf->topic_score_map, curr_tup.topic, &curr_tup.score);
             }
         }
 

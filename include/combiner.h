@@ -58,6 +58,6 @@ void free_hashmap(hash_map_t *map);
 
 void *mapper(void *arg);
 
-void *reudcer(void *arg);
+void *reducer(void *arg);
 
 #endif

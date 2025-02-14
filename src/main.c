@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "combiner.h"
+#include "hashmap.c"
 #include "mapper.c"
 #include "reducer.c"
 
@@ -24,12 +25,12 @@ int main(int argc, char *argv[]){
     int num_slots = atoi(argv[1]);
     int num_users = atoi(argv[2]);
 
-    comm_buff = (comm_buf_t *)malloc(num_users * sizeof(comm_buf_t));
+    comm_buf = (comm_buf_t *)malloc(num_users * sizeof(comm_buf_t));
 
     pthread_t mapper_tid;
     int *red_idxs = (int *)malloc(num_users * sizeof(int));
     pthread_t *reducer_tids = (pthread_t *)malloc(num_users * sizeof(pthread_t));
-    if (red_idxs == NULL || reducer_tids == NULLL){
+    if (red_idxs == NULL || reducer_tids == NULL){
         printf("Failure to allocate space for buffer\n");
         return -1;
     }
