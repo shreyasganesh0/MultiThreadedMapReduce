@@ -1,6 +1,8 @@
 void *reducer(void *argc){
+    printf("In the reducer\n");
     int idx = *(int *)argc;
 
+    printf("%d\n", idx);
     comm_buf_t *curr_buf = &comm_buf[idx];
 
     hash_map_t *topic_score_map = create_hashmap(INITIAL_CAPACITY);        
@@ -12,16 +14,19 @@ void *reducer(void *argc){
 
         while(curr_buf->out_buf_loc >= 0){
 
-            tuple_t curr_tup = curr_buf->tuple_buf[curr_buf->out_buf_loc];
+            tuple_t *curr_tup = &curr_buf->tuple_buf[curr_buf->out_buf_loc];
+	    printf("This is the curr topic: %s\n", curr_tup->topic);
             curr_buf->out_buf_loc--;
             curr_buf->in_buf_loc--;
-            if (!strcmp(curr_tup.topic,"\0")){ 
+            if (!strcmp(curr_tup->topic,"\0")){ 
+		printf("Got EOF\n");
                 hashmap_iterate(curr_buf->topic_score_map, idx);
                 pthread_mutex_unlock(&curr_buf->mutex); //maybe not needed?
                 return NULL;
             }
             else{
-                hashmap_insert(curr_buf->topic_score_map, curr_tup.topic, &curr_tup.score);
+		printf("Inserting into the hashmap\n");
+                hashmap_insert(curr_buf->topic_score_map, curr_tup->topic, &curr_tup->score);
             }
         }
 

@@ -87,7 +87,7 @@ void hashmap_delete(hash_map_t *map, const char *key) {
         if (strcmp(map->nodes[index].key, key) == 0) {
             free(map->nodes[index].key);
             map->nodes[index].key = NULL;
-            map->nodes[index].value = NULL;
+            map->nodes[index].value = 0;
             map->nodes[index].is_occupied = 0;
             map->size--;
             return;

@@ -77,7 +77,6 @@ int main(int argc, char *argv[]){
     //free(reducer_tids);
     //free(red_idxs);
     return 0;
-
     
 }
 

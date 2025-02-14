@@ -1,5 +1,5 @@
 void *mapper(void *argc){
-    
+    printf("In the mapper\n");
 
     while(1){
         
@@ -60,16 +60,15 @@ void *mapper(void *argc){
                     }
             }
 
-            int idx = (atoi(mapper_inp.userID) % 11111) - 1;
+            int idx = atoi(mapper_inp.userID) - 1;
             comm_buf_t *curr_buf = &comm_buf[idx];
 
             sem_wait(&curr_buf->full);
             pthread_mutex_lock(&curr_buf->mutex);
 
-            strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic,mapper_inp.topic); 
+            strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic, mapper_inp.topic); 
             curr_buf->tuple_buf[curr_buf->in_buf_loc].score = score; 
             curr_buf->in_buf_loc++;
-            curr_buf->out_buf_loc++;
 
             pthread_mutex_unlock(&curr_buf->mutex);
             sem_post(&curr_buf->empty);
@@ -77,6 +76,7 @@ void *mapper(void *argc){
         }
         else{
             if (feof(stdin)){
+		printf("EOF found\n");
                 for (int i = 0; i < comm_buf[0].capacity; i++){ // maybe have a check for number for illegal access comm_buf[0]
                     comm_buf_t *curr_buf = &comm_buf[i];
                     sem_wait(&curr_buf->full);
