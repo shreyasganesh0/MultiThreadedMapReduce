@@ -44,9 +44,7 @@ void hashmap_insert(hash_map_t *map, const char *key, int value) {
     while (map->nodes[index].is_occupied) {
         // If the key already exists, update the value
         if (strcmp(map->nodes[index].key, key) == 0) {
-	    printf("Before adding val %d\n", map->nodes[index].value);
             map->nodes[index].value += value;
-	    printf("After adding val %d\n", map->nodes[index].value);
             map->nodes[index].is_occupied = 1;
             map->size++;
             return;

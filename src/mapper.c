@@ -61,7 +61,6 @@ void *mapper(void *argc){
             }
 
             int idx = atoi(mapper_inp.userID) - 1; // prefetch a few and buffer?
-	    printf("This is the userid and idx: %s, %d\n", mapper_inp.userID, idx);
             comm_buf_t *curr_buf = &comm_buf[idx];
 
 
@@ -84,7 +83,6 @@ void *mapper(void *argc){
         }
         else{
             if (feof(stdin)){
-		printf("EOF found\n");
                 for (int i = 0; i < num_users; i++) { // maybe have a check for number for illegal access comm_buf[0]
                     comm_buf_t *curr_buf = &comm_buf[i];
                     sem_wait(&curr_buf->empty);

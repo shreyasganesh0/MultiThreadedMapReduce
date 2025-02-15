@@ -8,13 +8,11 @@ void *reducer(void *argc){
         sem_wait(&curr_buf->full); 
         pthread_mutex_lock(&curr_buf->mutex);
 
-        printf("In buf loc %d, Out buf loc %d\n", curr_buf->in_buf_loc, curr_buf->out_buf_loc);
 	int indx = (curr_buf->out_buf_loc % num_slots);
+        int sem_post_count = 0;
         while(curr_buf->in_buf_loc != curr_buf->out_buf_loc){
-        printf("In buf loc %d, Out buf loc %d\n", curr_buf->in_buf_loc, curr_buf->out_buf_loc);
 
             tuple_t *curr_tup = &curr_buf->tuple_buf[indx];
-	    printf("Locked the buffer in this state %s, %d for idx %d\n", curr_tup->topic, curr_tup->score, idx);
             if (!strcmp(curr_tup->topic,"endoffile")){ 
                 hashmap_iterate(curr_buf->topic_score_map, idx + 1);
                 pthread_mutex_unlock(&curr_buf->mutex); //maybe not needed?
@@ -25,11 +23,13 @@ void *reducer(void *argc){
             }
             curr_buf->out_buf_loc++;
 	    indx += num_slots;
-       	    sem_post(&curr_buf->empty);
+            sem_post_count++;
         }
-	curr_buf->in_buf_loc = 0;
 
         pthread_mutex_unlock(&curr_buf->mutex);
+	for (int i = 0; i < sem_post_count; i++) {
+       	    sem_post(&curr_buf->empty);
+        }
         
     } while(1);
 
