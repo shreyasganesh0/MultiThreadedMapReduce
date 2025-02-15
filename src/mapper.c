@@ -61,9 +61,10 @@ void *mapper(void *argc){
             }
 
             int idx = atoi(mapper_inp.userID) - 1;
+	    printf("This is the userid and idx: %s, %d\n", mapper_inp.userID, idx);
             comm_buf_t *curr_buf = &comm_buf[idx];
 
-            sem_wait(&curr_buf->full);
+            sem_wait(&curr_buf->empty);
             pthread_mutex_lock(&curr_buf->mutex);
 
             strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic, mapper_inp.topic); 
@@ -71,21 +72,20 @@ void *mapper(void *argc){
             curr_buf->in_buf_loc++;
 
             pthread_mutex_unlock(&curr_buf->mutex);
-            sem_post(&curr_buf->empty);
+            sem_post(&curr_buf->full);
                 
         }
         else{
             if (feof(stdin)){
 		printf("EOF found\n");
-                for (int i = 0; i < comm_buf[0].capacity; i++){ // maybe have a check for number for illegal access comm_buf[0]
+                for (int i = 0; i < num_users; i++){ // maybe have a check for number for illegal access comm_buf[0]
                     comm_buf_t *curr_buf = &comm_buf[i];
                     sem_wait(&curr_buf->full);
                     pthread_mutex_lock(&curr_buf->mutex);
 
-                    curr_buf->tuple_buf[curr_buf->in_buf_loc].topic[0] = '\0'; 
+                    strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic, "endoffile"); 
                     curr_buf->tuple_buf[curr_buf->in_buf_loc].score = -1; 
                     curr_buf->in_buf_loc++;
-                    curr_buf->out_buf_loc++;
 
                     pthread_mutex_unlock(&curr_buf->mutex);
                     sem_post(&curr_buf->empty);

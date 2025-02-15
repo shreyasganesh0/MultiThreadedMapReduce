@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-
 unsigned long hash_function(const char *key){
     unsigned long hash = 5381; // defined in the DJB2
     int c;
@@ -29,8 +24,8 @@ void hashmap_iterate(hash_map_t *map, int userID){
     hash_node_t *node = map->nodes;
     for (int i = 0; i < map->capacity; i++){
         if (node[i].is_occupied == 1){
-            printf("(%04d,%s,%d)\n", userID, node[i].key, *node[i].value);
-            node[i].value = NULL;
+            printf("(%04d,%s,%d)\n", userID, node[i].key, node[i].value);
+            node[i].value = -1;
             node[i].is_occupied = 0;
             map->size -= 1;
         }
@@ -38,7 +33,7 @@ void hashmap_iterate(hash_map_t *map, int userID){
     return;
 }
 
-void hashmap_insert(hash_map_t *map, const char *key, int *value) {
+void hashmap_insert(hash_map_t *map, const char *key, int value) {
     if ((float)map->size / map->capacity > LOAD_FACTOR) {
         // TODO: resize hashmap 
     }
@@ -49,8 +44,9 @@ void hashmap_insert(hash_map_t *map, const char *key, int *value) {
     while (map->nodes[index].is_occupied) {
         // If the key already exists, update the value
         if (strcmp(map->nodes[index].key, key) == 0) {
-            *value += *map->nodes[index].value; // adds the value to existing value
-            map->nodes[index].value = value;
+	    printf("Before adding val %d\n", map->nodes[index].value);
+            map->nodes[index].value += value;
+	    printf("After adding val %d\n", map->nodes[index].value);
             map->nodes[index].is_occupied = 1;
             map->size++;
             return;
@@ -64,7 +60,7 @@ void hashmap_insert(hash_map_t *map, const char *key, int *value) {
     map->size++;
 }
 
-int *hashmap_get(hash_map_t *map, const char *key) {
+int hashmap_get(hash_map_t *map, const char *key) {
     unsigned long hash = hash_function(key);
     int index = hash % map->capacity;
 
@@ -76,7 +72,7 @@ int *hashmap_get(hash_map_t *map, const char *key) {
         index = (index + 1) % map->capacity;  // Linear probing
     }
 
-    return NULL;  // Key not found
+    return -1;  // Key not found
 }
 
 void hashmap_delete(hash_map_t *map, const char *key) {
@@ -87,7 +83,7 @@ void hashmap_delete(hash_map_t *map, const char *key) {
         if (strcmp(map->nodes[index].key, key) == 0) {
             free(map->nodes[index].key);
             map->nodes[index].key = NULL;
-            map->nodes[index].value = 0;
+            map->nodes[index].value = -1;
             map->nodes[index].is_occupied = 0;
             map->size--;
             return;

@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
     char *key;
-    int *value;
+    int value;
     int is_occupied;
 } hash_node_t;
 
@@ -35,12 +35,11 @@ typedef struct {
     hash_map_t *topic_score_map;
     tuple_t *tuple_buf;
     int in_buf_loc;
-    int out_buf_loc;
-    int capacity;
 } comm_buf_t;
 
 
 comm_buf_t *comm_buf;
+int num_users;
 
 unsigned long hash_function(const char *key);
 
@@ -48,9 +47,9 @@ hash_map_t *create_hashmap(int capacity);
 
 void hashmap_iterate(hash_map_t *map, int userID);
 
-void hashmap_insert(hash_map_t *map, const char *key, int *value);
+void hashmap_insert(hash_map_t *map, const char *key, int value);
 
-int *hashmap_get(hash_map_t *map, const char *key);
+int hashmap_get(hash_map_t *map, const char *key);
 
 void hashmap_delete(hash_map_t *map, const char *key);
 

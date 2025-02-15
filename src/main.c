@@ -23,7 +23,7 @@ int main(int argc, char *argv[]){
     }
 
     int num_slots = atoi(argv[1]);
-    int num_users = atoi(argv[2]);
+    num_users = atoi(argv[2]);
 
     comm_buf = (comm_buf_t *)malloc(num_users * sizeof(comm_buf_t));
 
@@ -37,17 +37,15 @@ int main(int argc, char *argv[]){
 
 
     for (int i = 0; i < num_users; i++){
-        sem_init(&comm_buf[i].empty, 0, 0);
-        sem_init(&comm_buf[i].full, 0, num_slots);
-        comm_buf[i].tuple_buf = (tuple_t *)malloc(num_slots * sizeof(tuple_t));
+        sem_init(&comm_buf[i].empty, 0, num_slots);
+        sem_init(&comm_buf[i].full, 0, 0);
+        comm_buf[i].tuple_buf = (tuple_t *)calloc(num_slots, sizeof(tuple_t));
         if (comm_buf[i].tuple_buf == NULL){
             printf("Failure to allocate space for buffer\n");
             return -1;
         }
         pthread_mutex_init(&comm_buf[i].mutex, NULL);
         comm_buf[i].in_buf_loc = 0;
-        comm_buf[i].out_buf_loc = 0;
-        comm_buf[i].capacity = num_slots;
         comm_buf[i].topic_score_map = create_hashmap(INITIAL_CAPACITY);
 
         red_idxs[i] = i;
@@ -73,6 +71,7 @@ int main(int argc, char *argv[]){
         sem_destroy(&comm_buf[i].full);
         free(comm_buf[i].tuple_buf);
     }
+    printf("Program exiting\n");
 
     //free(reducer_tids);
     //free(red_idxs);
