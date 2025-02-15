@@ -5,6 +5,10 @@
 1. To build from source
 ```
 gcc -o main src/main.c -Iinclude
+
+        OR
+make clean
+make
 ```
 
 2. Build with script

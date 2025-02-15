@@ -9,7 +9,7 @@ TARGET_COMBINE = $(BUILD_DIR)/combiner
 all: $(TARGET_COMBINE)
 
 # Rule for building combiner binary directly
-$(TARGET_COMBINE): $(SRC_DIR)/combiner.c
+$(TARGET_COMBINE): $(SRC_DIR)/main.c
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $< -o $@
 
