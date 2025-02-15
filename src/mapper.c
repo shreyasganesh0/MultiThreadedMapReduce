@@ -60,7 +60,8 @@ void *mapper(void *argc){
                     }
             }
 
-            int idx = atoi(mapper_inp.userID) - 1; // prefetch a few and buffer?
+            unsigned long hash = hash_function(mapper_inp.userID);
+	    int idx = hash % num_users;
             comm_buf_t *curr_buf = &comm_buf[idx];
 
 
