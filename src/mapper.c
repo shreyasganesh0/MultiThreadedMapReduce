@@ -68,7 +68,7 @@ void *mapper(void *argc){
             pthread_mutex_lock(&curr_buf->mutex);
 	    
 	    int indx = curr_buf->in_buf_loc % num_slots;
-	    if (indx >= num_slots) {
+	    if (indx >= num_slots || indx < 0) {
 		printf("Out of bounds check\n");
 		break;
             }

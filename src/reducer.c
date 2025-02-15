@@ -22,7 +22,7 @@ void *reducer(void *argc){
                 hashmap_insert(curr_buf->topic_score_map, curr_tup->topic, curr_tup->score);
             }
             curr_buf->out_buf_loc++;
-	    indx += num_slots;
+	    indx = (indx + 1) - ((indx + 1) >= num_slots) * num_slots;
             sem_post_count++;
         }
 

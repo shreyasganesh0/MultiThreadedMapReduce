@@ -20,7 +20,6 @@ int main(int argc, char *argv[]) {
 
     num_slots = atoi(argv[1]);
     num_users = atoi(argv[2]);
-    num_slots--;
 
     comm_buf = (comm_buf_t *)malloc(num_users * sizeof(comm_buf_t));
 
