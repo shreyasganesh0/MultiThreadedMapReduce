@@ -1,5 +1,4 @@
 void *reducer(void *argc){
-    printf("In the reducer\n");
     int idx = *(int *)argc;
 
     comm_buf_t *curr_buf = &comm_buf[idx];

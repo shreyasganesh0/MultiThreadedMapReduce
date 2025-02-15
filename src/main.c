@@ -73,7 +73,6 @@ int main(int argc, char *argv[]) {
         sem_destroy(&comm_buf[i].full);
         free(comm_buf[i].tuple_buf);
     }
-    printf("Program exiting\n");
 
     //free(reducer_tids);
     //free(red_idxs);

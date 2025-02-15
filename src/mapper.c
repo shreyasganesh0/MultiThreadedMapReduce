@@ -1,5 +1,4 @@
 void *mapper(void *argc){
-    printf("In the mapper\n");
 
     while(1){
         
