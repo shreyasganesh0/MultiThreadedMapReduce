@@ -7,7 +7,7 @@ void *mapper(void *argc){
 
         char buf[30];
 
-        if (fgets(buf, sizeof(buf), stdin) != NULL){
+        if (fgets(buf, sizeof(buf), stdin) != NULL) {
             size_t buf_len = strlen(buf);
             if (buf_len > 0 && buf[buf_len - 1] == '\n'){
                 buf[buf_len - 1] = '\0';
@@ -21,7 +21,7 @@ void *mapper(void *argc){
                 printf("exit\n");
                 return 0;
             }
-            if(sscanf(buf, "(%[^,],%[^,],%[^)])", mapper_inp.userID, &mapper_inp.action, mapper_inp.topic) == 0){
+            if(sscanf(buf, "(%[^,],%[^,],%[^)])", mapper_inp.userID, &mapper_inp.action, mapper_inp.topic) == 0) {
                 printf("Unable to parse input\n");
                 continue;
             }
@@ -60,15 +60,22 @@ void *mapper(void *argc){
                     }
             }
 
-            int idx = atoi(mapper_inp.userID) - 1;
+            int idx = atoi(mapper_inp.userID) - 1; // prefetch a few and buffer?
 	    printf("This is the userid and idx: %s, %d\n", mapper_inp.userID, idx);
             comm_buf_t *curr_buf = &comm_buf[idx];
 
+
             sem_wait(&curr_buf->empty);
             pthread_mutex_lock(&curr_buf->mutex);
+	    
+	    int indx = curr_buf->in_buf_loc % num_slots;
+	    if (indx >= num_slots) {
+		printf("Out of bounds check\n");
+		break;
+            }
 
-            strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic, mapper_inp.topic); 
-            curr_buf->tuple_buf[curr_buf->in_buf_loc].score = score; 
+            strcpy(curr_buf->tuple_buf[indx].topic, mapper_inp.topic); 
+            curr_buf->tuple_buf[indx].score = score; 
             curr_buf->in_buf_loc++;
 
             pthread_mutex_unlock(&curr_buf->mutex);
@@ -78,17 +85,18 @@ void *mapper(void *argc){
         else{
             if (feof(stdin)){
 		printf("EOF found\n");
-                for (int i = 0; i < num_users; i++){ // maybe have a check for number for illegal access comm_buf[0]
+                for (int i = 0; i < num_users; i++) { // maybe have a check for number for illegal access comm_buf[0]
                     comm_buf_t *curr_buf = &comm_buf[i];
-                    sem_wait(&curr_buf->full);
+                    sem_wait(&curr_buf->empty);
                     pthread_mutex_lock(&curr_buf->mutex);
 
-                    strcpy(curr_buf->tuple_buf[curr_buf->in_buf_loc].topic, "endoffile"); 
-                    curr_buf->tuple_buf[curr_buf->in_buf_loc].score = -1; 
+	            int indx = curr_buf->in_buf_loc % num_slots;
+                    strcpy(curr_buf->tuple_buf[indx].topic, "endoffile"); 
+                    curr_buf->tuple_buf[indx].score = -1; 
                     curr_buf->in_buf_loc++;
 
                     pthread_mutex_unlock(&curr_buf->mutex);
-                    sem_post(&curr_buf->empty);
+                    sem_post(&curr_buf->full);
                 }
             }
             else if (ferror(stdin)) {

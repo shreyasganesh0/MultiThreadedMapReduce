@@ -35,11 +35,13 @@ typedef struct {
     hash_map_t *topic_score_map;
     tuple_t *tuple_buf;
     int in_buf_loc;
+    int out_buf_loc;
 } comm_buf_t;
 
 
 comm_buf_t *comm_buf;
 int num_users;
+int num_slots;
 
 unsigned long hash_function(const char *key);
 
