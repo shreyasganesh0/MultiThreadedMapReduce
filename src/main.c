@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
         comm_buf[i].in_buf_loc = 0;
         comm_buf[i].out_buf_loc = 0;
         comm_buf[i].topic_score_map = create_hashmap(INITIAL_CAPACITY);
+	strcpy(comm_buf[i].userID, "x");
 
         red_idxs[i] = i;
         int pred_err = pthread_create(&reducer_tids[i], NULL, reducer, &red_idxs[i]);

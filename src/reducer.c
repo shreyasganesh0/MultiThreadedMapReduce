@@ -13,8 +13,8 @@ void *reducer(void *argc){
         while(curr_buf->in_buf_loc != curr_buf->out_buf_loc){
 
             tuple_t *curr_tup = &curr_buf->tuple_buf[indx];
-            if (!strcmp(curr_tup->topic,"endoffile")){ 
-                hashmap_iterate(curr_buf->topic_score_map, idx + 1);
+            if (!strcmp(curr_tup->topic,"xeof")){ 
+                hashmap_iterate(curr_buf->topic_score_map, curr_buf->userID);
                 pthread_mutex_unlock(&curr_buf->mutex); //maybe not needed?
                 return NULL;
             }

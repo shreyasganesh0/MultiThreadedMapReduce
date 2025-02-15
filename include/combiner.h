@@ -34,6 +34,7 @@ typedef struct {
     pthread_mutex_t mutex;
     hash_map_t *topic_score_map;
     tuple_t *tuple_buf;
+    char userID[5];
     int in_buf_loc;
     int out_buf_loc;
 } comm_buf_t;
@@ -47,7 +48,7 @@ unsigned long hash_function(const char *key);
 
 hash_map_t *create_hashmap(int capacity);
 
-void hashmap_iterate(hash_map_t *map, int userID);
+void hashmap_iterate(hash_map_t *map, char *userID);
 
 void hashmap_insert(hash_map_t *map, const char *key, int value);
 

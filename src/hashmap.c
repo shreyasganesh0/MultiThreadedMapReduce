@@ -15,7 +15,7 @@ hash_map_t *create_hashmap(int capacity){
     return hash_map;
 }
 
-void hashmap_iterate(hash_map_t *map, int userID){
+void hashmap_iterate(hash_map_t *map, char *userID){
     if (map == NULL){
         printf("Empty Map\n");
         return;
@@ -24,7 +24,7 @@ void hashmap_iterate(hash_map_t *map, int userID){
     hash_node_t *node = map->nodes;
     for (int i = 0; i < map->capacity; i++){
         if (node[i].is_occupied == 1){
-            printf("(%04d,%s,%d)\n", userID, node[i].key, node[i].value);
+            printf("(%4s,%s,%d)\n", userID, node[i].key, node[i].value);
             node[i].value = -1;
             node[i].is_occupied = 0;
             map->size -= 1;

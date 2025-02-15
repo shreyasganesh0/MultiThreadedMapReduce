@@ -69,10 +69,9 @@ void *mapper(void *argc){
             pthread_mutex_lock(&curr_buf->mutex);
 	    
 	    int indx = curr_buf->in_buf_loc % num_slots;
-	    if (indx >= num_slots || indx < 0) {
-		printf("Out of bounds check\n");
-		break;
-            }
+            if (strcmp(curr_buf->userID, mapper_inp.userID)) {
+		strcpy(curr_buf->userID, mapper_inp.userID);
+	    }
 
             strcpy(curr_buf->tuple_buf[indx].topic, mapper_inp.topic); 
             curr_buf->tuple_buf[indx].score = score; 
@@ -90,7 +89,7 @@ void *mapper(void *argc){
                     pthread_mutex_lock(&curr_buf->mutex);
 
 	            int indx = curr_buf->in_buf_loc % num_slots;
-                    strcpy(curr_buf->tuple_buf[indx].topic, "endoffile"); 
+                    strcpy(curr_buf->tuple_buf[indx].topic, "xeof"); 
                     curr_buf->tuple_buf[indx].score = -1; 
                     curr_buf->in_buf_loc++;
 
