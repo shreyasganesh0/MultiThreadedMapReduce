@@ -20,6 +20,10 @@ int main(int argc, char *argv[]) {
 
     num_slots = atoi(argv[1]);
     num_users = atoi(argv[2]);
+    if (num_slots < 1 || num_users < 1) {
+        printf("Invalid options");
+        return -1;
+    }
 
     comm_buf = (comm_buf_t *)malloc(num_users * sizeof(comm_buf_t));
 
