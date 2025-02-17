@@ -150,7 +150,7 @@ void *mapper(void *arg) {
                         buffs[i].tuple_array[buffs[i].in] = newTuple;
 
                         // Print added tuple
-                        //printf("Mapper Added:(%04u,%s,%d)\n", buffs[i].tuple_array[buffs[i].in].id, buffs[i].tuple_array[buffs[i].in].topic,buffs[i].tuple_array[buffs[i].in].weight);
+                        printf("Mapper Added:(%04u,%s,%d)\n", buffs[i].tuple_array[buffs[i].in].id, buffs[i].tuple_array[buffs[i].in].topic,buffs[i].tuple_array[buffs[i].in].weight);
 
                         // Update in index
                         buffs[i].in = (buffs[i].in + 1) % buffs[i].capacity;
@@ -168,6 +168,7 @@ void *mapper(void *arg) {
             printf("Invalid input format.\n");
         }
     }
+    //printf("Mapper done\n");
 
     mapper_done = 1;
     free(args);
@@ -187,8 +188,13 @@ void *reducer(void *arg) {
     // Because we want the reducer to always be consuming use a while loop and set up a condition within to break when buffer is empty and mapper is done
     int token = 0;
     while (1) {
-	int in;
-	int out;
+	    sem_wait(&buff->mutex);
+	    int isEmpty = (buff->in == buff->out);
+	    sem_post(&buff->mutex);
+	    
+	    if (mapper_done && isEmpty) {
+		break;
+	    }
         /*      IN THE CASE THE BUFFER IS NOT EMPTY PROCESS NEXT TUPLE       */ 
         // Wait for new entry in buffer
         sem_wait(&buff->full);
@@ -205,14 +211,11 @@ void *reducer(void *arg) {
         strcpy(newTuple.topic, buff->tuple_array[buff->out].topic);
         newTuple.weight = buff->tuple_array[buff->out].weight;
 
-        //printf("Extracted Tuple.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", newTuple.id, newTuple.topic, newTuple.weight);
+        printf("Extracted Tuple.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", newTuple.id, newTuple.topic, newTuple.weight);
 
         // Update out slot counter for circular buffer
         buff->out = (buff->out + 1) % buff->capacity;
-	out = buff->out;
-	in = buff->in;
-        
-        // Unlock the buffer (increment the semaphor lock counter)
+	        // Unlock the buffer (increment the semaphor lock counter)
         sem_post(&buff->mutex);
 
         // Signal that a tuple has been removed from buffer
@@ -241,7 +244,7 @@ void *reducer(void *arg) {
         else {
             // Increment number of tuples and reallocate memory with new size
             num_tuples++;
-            printf("Here in %d reducer for num_tuples %d\n", newTuple.id, num_tuples);
+            //printf("Here in %d reducer for num_tuples %d\n", newTuple.id, num_tuples);
             struct Tuple *temp = realloc(tuples, num_tuples * sizeof(struct Tuple));
             // Copy back to tuples
             tuples = temp;
@@ -251,9 +254,6 @@ void *reducer(void *arg) {
             strcpy(tuples[num_tuples - 1].topic, newTuple.topic);
 
             //printf("Slot NOT found entering new slot into array.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", tuples[num_tuples - 1].id, tuples[num_tuples - 1].topic, tuples[num_tuples - 1].weight);
-        }
-        if (mapper_done && out == in) {
-		break;
         }
 
         token++;
