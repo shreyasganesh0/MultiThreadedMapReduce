@@ -15,6 +15,7 @@ void *reducer(void *argc){
             if (!strcmp(curr_tup->topic,"xeof")){ 
                 hashmap_iterate(curr_buf->topic_score_map, curr_buf->userID);
                 pthread_mutex_unlock(&curr_buf->mutex); //maybe not needed?
+       	        sem_post(&curr_buf->empty);
                 return NULL;
             }
             else{
