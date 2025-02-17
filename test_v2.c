@@ -21,6 +21,7 @@ struct Buffer {
     int in;
     int out;
     int capacity;
+    int em_flag;
     struct Tuple *tuple_array;
     sem_t mutex;
     sem_t full;
@@ -117,6 +118,7 @@ void *mapper(void *arg) {
                 
                 // Update in index
                 buffs[found].in = (buffs[found].in + 1) % buffs[found].capacity;
+		buffs[found].em_flag = 0;
 
 
                 // Unlock buffer
@@ -150,10 +152,11 @@ void *mapper(void *arg) {
                         buffs[i].tuple_array[buffs[i].in] = newTuple;
 
                         // Print added tuple
-                        //printf("Mapper Added:(%04u,%s,%d)\n", buffs[i].tuple_array[buffs[i].in].id, buffs[i].tuple_array[buffs[i].in].topic,buffs[i].tuple_array[buffs[i].in].weight);
+                        printf("Mapper Added:(%04u,%s,%d)\n", buffs[i].tuple_array[buffs[i].in].id, buffs[i].tuple_array[buffs[i].in].topic,buffs[i].tuple_array[buffs[i].in].weight);
 
                         // Update in index
                         buffs[i].in = (buffs[i].in + 1) % buffs[i].capacity;
+		        buffs[i].em_flag = 0;
                         // ATTEMPT TO FIX
                         sem_post(&buffs[i].mutex);
                         sem_post(&buffs[i].full);
@@ -168,6 +171,7 @@ void *mapper(void *arg) {
             printf("Invalid input format.\n");
         }
     }
+    //printf("Mapper done\n");
 
     mapper_done = 1;
     free(args);
@@ -187,8 +191,7 @@ void *reducer(void *arg) {
     // Because we want the reducer to always be consuming use a while loop and set up a condition within to break when buffer is empty and mapper is done
     int token = 0;
     while (1) {
-	int in;
-	int out;
+	    
         /*      IN THE CASE THE BUFFER IS NOT EMPTY PROCESS NEXT TUPLE       */ 
         // Wait for new entry in buffer
         sem_wait(&buff->full);
@@ -196,66 +199,65 @@ void *reducer(void *arg) {
         // Now that there is a new entry lock the buffer so we can access tuple safely
         sem_wait(&buff->mutex);
 
+	    int isEmpty = (buff->in == buff->out);
+	    if (mapper_done && isEmpty && buff->em_flag) {
+		printf("Hit reducer end\n");
+		break;
+	    }	    
 
         //printf("Mutex grabbed in reducer.\n");
 
         // Extract the tuple from the out slot from the buffer (View PThreads.pdf slide 52 for refresher)
-        struct Tuple newTuple;
-        newTuple.id = buff->tuple_array[buff->out].id;
-        strcpy(newTuple.topic, buff->tuple_array[buff->out].topic);
-        newTuple.weight = buff->tuple_array[buff->out].weight;
+	struct Tuple newTuple;
+	newTuple.id = buff->tuple_array[buff->out].id;
+	strcpy(newTuple.topic, buff->tuple_array[buff->out].topic);
+	newTuple.weight = buff->tuple_array[buff->out].weight;
 
-        //printf("Extracted Tuple.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", newTuple.id, newTuple.topic, newTuple.weight);
+	printf("Extracted Tuple.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", newTuple.id, newTuple.topic, newTuple.weight);
 
-        // Update out slot counter for circular buffer
-        buff->out = (buff->out + 1) % buff->capacity;
-	out = buff->out;
-	in = buff->in;
-        
+	if (buff->out == buff->in) {
+		buff->em_flag = 1;
+	}	
+// Update out slot counter for circular buffer
+	buff->out = (buff->out + 1) % buff->capacity;
         // Unlock the buffer (increment the semaphor lock counter)
         sem_post(&buff->mutex);
 
         // Signal that a tuple has been removed from buffer
-        sem_post(&buff->empty);
+	sem_post(&buff->empty);
         
-        // DO similar like mapper
-        // Go through array to search for matching topic
-        // If topic matches store slot index and directly update, else slot = -1 so increment num_tuples and reallocate array and add new tuple topic
-        int slot = -1;
-        for (int i = 0; i < num_tuples; i++) {
-            // Have to use string compare, will return 0 if the same
-            if (strcmp(newTuple.topic, tuples[i].topic) == 0) {
-                slot = i;
-                break;
-            }
-        }
 
-        //printf("Slot value %d.\n",slot);
-
-        // If a matching topic was found
-        if (slot != -1) {
-            tuples[slot].weight += newTuple.weight;
-            //printf("Slot found and new slot weight is %d.\n", tuples[slot].weight);
-        }
-        // If no matching topic was found
-        else {
-            // Increment number of tuples and reallocate memory with new size
-            num_tuples++;
-            printf("Here in %d reducer for num_tuples %d\n", newTuple.id, num_tuples);
-            struct Tuple *temp = realloc(tuples, num_tuples * sizeof(struct Tuple));
-            // Copy back to tuples
-            tuples = temp;
-            // Enter new tuple
-            tuples[num_tuples - 1].id = newTuple.id;
-            tuples[num_tuples - 1].weight = newTuple.weight;
-            strcpy(tuples[num_tuples - 1].topic, newTuple.topic);
-
-            //printf("Slot NOT found entering new slot into array.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", tuples[num_tuples - 1].id, tuples[num_tuples - 1].topic, tuples[num_tuples - 1].weight);
-        }
-        if (mapper_done && out == in) {
+	int slot = -1;
+	for (int i = 0; i < num_tuples; i++) {
+	    // Have to use string compare, will return 0 if the same
+	    if (strcmp(newTuple.topic, tuples[i].topic) == 0) {
+		slot = i;
 		break;
-        }
+	    }
+	}
 
+	//printf("Slot value %d.\n",slot);
+
+	// If a matching topic was found
+	if (slot != -1) {
+	    tuples[slot].weight += newTuple.weight;
+	    //printf("Slot found and new slot weight is %d.\n", tuples[slot].weight);
+	}
+	// If no matching topic was found
+	else {
+	    // Increment number of tuples and reallocate memory with new size
+	    num_tuples++;
+	    printf("Here in %d reducer for num_tuples %d\n", newTuple.id, num_tuples);
+	    struct Tuple *temp = realloc(tuples, num_tuples * sizeof(struct Tuple));
+	    // Copy back to tuples
+	    tuples = temp;
+	    // Enter new tuple
+	    tuples[num_tuples - 1].id = newTuple.id;
+	    tuples[num_tuples - 1].weight = newTuple.weight;
+	    strcpy(tuples[num_tuples - 1].topic, newTuple.topic);
+
+	    //printf("Slot NOT found entering new slot into array.\n  ID: %04u\n    Topic: %s\n   Weight: %d\n", tuples[num_tuples - 1].id, tuples[num_tuples - 1].topic, tuples[num_tuples - 1].weight);
+	}
         token++;
     }
 
@@ -289,6 +291,7 @@ int main(int argc, char *argv[]) {
         buffer_array[i].id = -1;        // Use -1 to show unused buffer. bc ID never will be negative
         buffer_array[i].in = 0;
         buffer_array[i].out = 0;
+        buffer_array[i].em_flag = 0;
         buffer_array[i].capacity = num_slots;
         buffer_array[i].tuple_array = malloc(num_slots * sizeof(struct Tuple));
         sem_init(&buffer_array[i].mutex, 0, 1);
