@@ -37,6 +37,7 @@ typedef struct {
     char userID[5];
     int in_buf_loc;
     int out_buf_loc;
+    int taken;
 } comm_buf_t;
 
 

@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
         }
         pthread_mutex_init(&comm_buf[i].mutex, NULL);
         comm_buf[i].in_buf_loc = 0;
+        comm_buf[i].taken = 0;
         comm_buf[i].out_buf_loc = 0;
         comm_buf[i].topic_score_map = create_hashmap(INITIAL_CAPACITY);
 	strcpy(comm_buf[i].userID, "x");
