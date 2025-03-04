@@ -59,11 +59,12 @@ void *mapper(void *argc){
                     }
             }
 
-            int idx = hash_function(mapper_inp.userID);
+            unsigned long idx = hash_function(mapper_inp.userID);
             int pos = idx % num_users;
-            while (comm_buf[pos].taken) {
+           
+            while (comm_buf[pos].taken && strcmp(comm_buf[pos].userID, mapper_inp.userID) != 0 ) {
                 pos++;
-                pos = pos - (pos >= num_users) * num_users;
+                pos = pos % num_users;
             }
             comm_buf_t *curr_buf = &comm_buf[pos];
             curr_buf->taken = 1;
